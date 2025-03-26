@@ -1,2 +1,2 @@
 # Xiaomi_Cybergear_SocketCAN
-A modified version of Xiaomi_Cybergear_Arduino by DanielKalicki to support SocketCAN instead of Arduino TWAI
+A modified version of [Xiaomi_Cybergear_Arduino](https://github.com/DanielKalicki/Xiaomi_CyberGear_Arduino?tab=readme-ov-file) by DanielKalicki to support SocketCAN instead of Arduino TWAI. 
