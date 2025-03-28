@@ -1,5 +1,5 @@
 #include "xiaomi_cybergear_driver.h"
-#include "HardwareSerial.h"
+//nclude "HardwareSerial.h"
 
 /* PUBLIC */
 XiaomiCyberGearDriver::XiaomiCyberGearDriver() {};
@@ -258,7 +258,7 @@ float XiaomiCyberGearDriver::_uint_to_float(uint16_t x, float x_min, float x_max
 //     }
 // }
 void XiaomiCyberGearDriver::_send_can_package(uint8_t can_id, uint8_t cmd_id, uint16_t option, uint8_t len, uint8_t* data) {
-    struct can_frame frame;
+    struct can_frame frame = {0};
     frame.can_id = (cmd_id << 24) | (option << 8) | can_id;
     frame.can_id |= CAN_EFF_FLAG; // Extended frame format
     frame.can_dlc = len;
@@ -268,6 +268,8 @@ void XiaomiCyberGearDriver::_send_can_package(uint8_t can_id, uint8_t cmd_id, ui
     if (write(can_socket, &frame, sizeof(frame)) != sizeof(frame)) {
         if (_use_serial_debug) std::cerr << "Failed to send CAN frame" << std::endl;
     }
+
+
 }
 void XiaomiCyberGearDriver::_send_can_float_package(uint8_t can_id, uint16_t addr, float value, float min, float max){
     uint8_t data[8] = {0x00};

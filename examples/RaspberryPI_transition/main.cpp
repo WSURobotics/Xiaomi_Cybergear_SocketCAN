@@ -1,9 +1,12 @@
-#include <Arduino.h>
-#include "driver/twai.h"
-#include "xiaomi_cybergear_driver.h
-#include <bits/stdc++.h>
+﻿//#include <Arduino.h>
+//#include "driver/twai.h"
+#include "../../xiaomi_cybergear/xiaomi_cybergear_driver.h"
+//#include <bits/stdc++.h>
 #include <map>
 #include <string>
+#include <thread>
+#include <chrono>
+#include <iostream>
 
 // =======================================================================================================
 // README - WIPE THE ESP32 BEFORE RESTARTING! OTHERWISE THE HIGH STRENGTH VALUES MAY SEND
@@ -130,54 +133,54 @@ static void all_motor_pos_to_zero(); // Sets all motor positions to zero (MODE_P
 static void normalize_stance(); // Brings motors to (current) default stance, assuming 0.0 is straight leg orientation
 static void strengthen_motors(); // Strengthens motors to dangerously high speed (ie, 20 or 30) for walk strength
 static void weaken_motors(); // Lowers motor speeds back down to safe value
-static void handle_rx_message(twai_message_t& message); // Configures status messages
+//static void handle_rx_message(twai_message_t& message); // Configures status messages
 static void check_alerts(); // Checks for status messages
 
 // Runs once when the code is re-pushed to microcontroller
 void setup() {
-  delay(1000);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   initialize_all_motors(); // Initialize all 12 cybergears
-  delay(1000);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   all_motor_pos_to_zero(); // Set the current motor positions to zero
-  delay(1000);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 // Runs ongoing while the microntroller is powered
 void loop() {
   if (!driver_installed) { // Checks for motor initialization
-    delay(5000);
-    Serial.printf("Driver not installed - bool is false");
+    //delay(5000);
+    //Serial.printf("Driver not installed - bool is false");
     return;
   }
 
-  if (printStart)
-  {
-    // Prints target motor status
-    check_alerts(); // Read incoming messages
-    XiaomiCyberGearStatus cybergear_status = gearArr[readCanID].get_status(); // Gets the status
-    Serial.printf("Motor: POS:%f V:%f T:%f temp:%d\n", cybergear_status.position, cybergear_status.speed, cybergear_status.torque, cybergear_status.temperature);
-    unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis >= TRANSMIT_RATE_MS) {
-      previousMillis = currentMillis;
-      gearArr[readCanID].request_status(); // Prompt for status
-    }
-  }
+  // if (printStart)
+  // {
+  //   // Prints target motor status
+  //   check_alerts(); // Read incoming messages
+  //   XiaomiCyberGearStatus cybergear_status = gearArr[readCanID].get_status(); // Gets the status
+  //   Serial.printf("Motor: POS:%f V:%f T:%f temp:%d\n", cybergear_status.position, cybergear_status.speed, cybergear_status.torque, cybergear_status.temperature);
+  //   unsigned long currentMillis = millis();
+  //   if (currentMillis - previousMillis >= TRANSMIT_RATE_MS) {
+  //     previousMillis = currentMillis;
+  //     gearArr[readCanID].request_status(); // Prompt for status
+  //   }
+  // }
 
   // Controlled void loop() timeslice
-  delay(timeSlice); // Controls the actual speed of the walking cycle (lower delay = faster the steps happen)
+  std::this_thread::sleep_for(std::chrono::milliseconds(timeSlice)); // Controls the actual speed of the walking cycle (lower delay = faster the steps happen)
 
   // ==================================================================================
   // PERFORMS ONCE - INITIAL POSITIONS AND RAISES SPEED LIMIT
   // ==================================================================================
   if (!initStall)
   {
-    Serial.println("Moving to default stance");
-    delay(2000);
+    //Serial.println("Moving to default stance");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     // Set to a standing stance
     normalize_stance();
 
-    delay(3000);
-    Serial.println("Waiting for Serial Command '1' before starting walk cycle");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    //Serial.println("Waiting for Serial Command '1' before starting walk cycle");
     initStall = true;
   }
 
@@ -206,71 +209,77 @@ void loop() {
   // ==================================================================================
   // EDIT FOR SERIAL INPUT ACTIONS AS REQUIRED
   // ==================================================================================
-  if (Serial.available()) {  // Check if data is available
-        String command = Serial.readStringUntil('\n');  // Read input until newline
-        command.trim();  // Remove any whitespace or newlines
+  // if (Serial.available()) {  // Check if data is available
+  //       String command = Serial.readStringUntil('\n');  // Read input until newline
+  //       command.trim();  // Remove any whitespace or newlines
 
-        int commandID = -1;
+  //       int commandID = -1;
         
-        if (sscanf(command.c_str(), "%d", &commandID) == 1) {  // Parse input
-            switch (commandID) {
-              case 0:
-                  Serial.println("CommandID 0 - Lazy Stop");
-                  loopStart = false;
-                  break;
-              case 1:
-                  Serial.println("CommandID 1 - Lazy Start");
-                  loopStart = true;
-                  break;
-              case 2:
-                  Serial.println("CommandID 2 - Printing Status Disabled");
-                  printStart = false;
-                  break;
-              case 3:
-                  Serial.println("CommandID 3 - Printing Status Enabled");
-                  printStart = true;
-                  break;
-              case 4:
-                  Serial.println("CommandID 4 - Decrease Step");
-                  timeSlice -= 5;
-                  break;
-              case 5:
-                  Serial.println("CommandID 5 - Increase Step");
-                  timeSlice += 5;
-                  break;
-              case 6:
-                  Serial.println("CommandID 6 - Normalizing Stance");
-                  normalize_stance();
-                  break;
-              case 7: 
-                  Serial.println("CommandID 7 - Strengthening Motors to 'dangerous speed'");
-                  strengthen_motors();
-                  break;
-              case 8:
-                Serial.println("CommandID8 - Weakening Motors back down");
-                weaken_motors();
-                break;
-              default:
-                  Serial.println("Invalid command ID");
-                  break;
-            }
-        } else {
-            Serial.println("Invalid input format");
-        }
-    }
+  //       if (sscanf(command.c_str(), "%d", &commandID) == 1) {  // Parse input
+  //           switch (commandID) {
+  //             case 0:
+  //                 Serial.println("CommandID 0 - Lazy Stop");
+  //                 loopStart = false;
+  //                 break;
+  //             case 1:
+  //                 Serial.println("CommandID 1 - Lazy Start");
+  //                 loopStart = true;
+  //                 break;
+  //             case 2:
+  //                 Serial.println("CommandID 2 - Printing Status Disabled");
+  //                 printStart = false;
+  //                 break;
+  //             case 3:
+  //                 Serial.println("CommandID 3 - Printing Status Enabled");
+  //                 printStart = true;
+  //                 break;
+  //             case 4:
+  //                 Serial.println("CommandID 4 - Decrease Step");
+  //                 timeSlice -= 5;
+  //                 break;
+  //             case 5:
+  //                 Serial.println("CommandID 5 - Increase Step");
+  //                 timeSlice += 5;
+  //                 break;
+  //             case 6:
+  //                 Serial.println("CommandID 6 - Normalizing Stance");
+  //                 normalize_stance();
+  //                 break;
+  //             case 7: 
+  //                 Serial.println("CommandID 7 - Strengthening Motors to 'dangerous speed'");
+  //                 strengthen_motors();
+  //                 break;
+  //             case 8:
+  //               Serial.println("CommandID8 - Weakening Motors back down");
+  //               weaken_motors();
+  //               break;
+  //             default:
+  //                 Serial.println("Invalid command ID");
+  //                 break;
+  //           }
+  //       } else {
+  //           Serial.println("Invalid input format");
+  //       }
+    //}
 }
 
+int main(){
+  void setup();
+  while (true){
+    void loop();
+  }
+}
 
 // Initializes all motors
 static void initialize_all_motors()
 {
-  gearArr[0].init_twai(RX_PIN, TX_PIN, /*serial_debug=*/true); // once for any cybergear
-  //gearArr[0].init_can("can0", /*serial_debug=*/true);
+  //arArr[0].init_twai(RX_PIN, TX_PIN, /*serial_debug=*/true); // once for any cybergear
+  gearArr[0].init_can("can0", /*serial_debug=*/true);
 
 
   for (int i = 0; i < 12; i++)
   {
-    Serial.printf("cybergear{%d} init\n", i);
+    //Serial.printf("cybergear{%d} init\n", i);
     gearArr[i].init_motor(MODE_POSITION); 
     gearArr[i].set_limit_speed(1.0f); /* set the maximum speed of the motor */
     gearArr[i].set_limit_current(12.0f); /* current limit allows faster operation */
@@ -285,13 +294,13 @@ static void all_motor_pos_to_zero()
 {
   for (int i = 0; i < 12; i++)
   {
-    Serial.printf("cybergear{%d} zero pos\n", i);
+    //Serial.printf("cybergear{%d} zero pos\n", i);
     // Set current position to zero, and then send motor to new zero (otherwise it will spin!)
     gearArr[i].motor_pos_to_zero();
     gearArr[i].set_position_ref(0.0f);
-    delay(50);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
-  Serial.println("All motor positions set.");
+  //Serial.println("All motor positions set.");
 }
 
 // Sets the legs to the default stance, assuming motors have been zeroed at the straight orientation
@@ -313,7 +322,7 @@ static void normalize_stance()
 // Initializes motor speed values to very high value to give it enough strength to hold position when walking
 static void strengthen_motors()
 {
-  Serial.println("Raising speed limit - strength increased");
+  //Serial.println("Raising speed limit - strength increased");
     for (int i = 0; i < 12; i++)
     {
       gearArr[i].set_limit_speed(30.0f);
@@ -323,7 +332,7 @@ static void strengthen_motors()
 // Initializes motor speed values to lower, safer value
 static void weaken_motors()
 {
-  Serial.println("Lowering speed limit - strength decreased");
+  //Serial.println("Lowering speed limit - strength decreased");
     for (int i = 0; i < 12; i++)
     {
       gearArr[i].set_limit_speed(1.0f);
@@ -333,48 +342,48 @@ static void weaken_motors()
 // The following functions came with the Xioami Cybergear Library - only for motor error/status communications
 
 // Processes error message to be read in Serial (only set up for a single targeted motor)
-static void handle_rx_message(twai_message_t& message) {
-  if (((message.identifier & 0xFF00) >> 8) == gearArr[readCanID].get_motor_can_id()){
-    gearArr[readCanID].process_message(message);
-  }
-}
+// static void handle_rx_message(twai_message_t& message) {
+//   if (((message.identifier & 0xFF00) >> 8) == gearArr[readCanID].get_motor_can_id()){
+//     gearArr[readCanID].process_message(message);
+//   }
+// }
 
-// Checks for error messages within the POLLING_RATE_MS timeslice
-static void check_alerts(){
-  // Check if alert happened
-  uint32_t alerts_triggered;
-  twai_read_alerts(&alerts_triggered, pdMS_TO_TICKS(POLLING_RATE_MS));
-  twai_status_info_t twai_status;
-  twai_get_status_info(&twai_status);
+// // Checks for error messages within the POLLING_RATE_MS timeslice
+// static void check_alerts(){
+//   // Check if alert happened
+//   uint32_t alerts_triggered;
+//   twai_read_alerts(&alerts_triggered, pdMS_TO_TICKS(POLLING_RATE_MS));
+//   twai_status_info_t twai_status;
+//   twai_get_status_info(&twai_status);
 
-  // Handle alerts
-  if (alerts_triggered & TWAI_ALERT_ERR_PASS) {
-    Serial.println("Alert: TWAI controller has become error passive.");
-  }
-  if (alerts_triggered & TWAI_ALERT_BUS_ERROR) {
-    Serial.println("Alert: A (Bit, Stuff, CRC, Form, ACK) error has occurred on the bus.");
-    Serial.printf("Bus error count: %d\n", twai_status.bus_error_count);
-  }
-  if (alerts_triggered & TWAI_ALERT_TX_FAILED) {
-    Serial.println("Alert: The Transmission failed.");
-    Serial.printf("TX buffered: %d\t", twai_status.msgs_to_tx);
-    Serial.printf("TX error: %d\t", twai_status.tx_error_counter);
-    Serial.printf("TX failed: %d\n", twai_status.tx_failed_count);
-  }
-  if (alerts_triggered & TWAI_ALERT_ABOVE_ERR_WARN)
-  {
-    Serial.println("Alert: Error counters exceeded limit!");
-  }
-  if (alerts_triggered & TWAI_ALERT_ERR_ACTIVE)
-  {
-    Serial.println("Alert: Error-active!");
-  }
+//   // Handle alerts
+//   if (alerts_triggered & TWAI_ALERT_ERR_PASS) {
+//     Serial.println("Alert: TWAI controller has become error passive.");
+//   }
+//   if (alerts_triggered & TWAI_ALERT_BUS_ERROR) {
+//     Serial.println("Alert: A (Bit, Stuff, CRC, Form, ACK) error has occurred on the bus.");
+//     Serial.printf("Bus error count: %d\n", twai_status.bus_error_count);
+//   }
+//   if (alerts_triggered & TWAI_ALERT_TX_FAILED) {
+//     Serial.println("Alert: The Transmission failed.");
+//     Serial.printf("TX buffered: %d\t", twai_status.msgs_to_tx);
+//     Serial.printf("TX error: %d\t", twai_status.tx_error_counter);
+//     Serial.printf("TX failed: %d\n", twai_status.tx_failed_count);
+//   }
+//   if (alerts_triggered & TWAI_ALERT_ABOVE_ERR_WARN)
+//   {
+//     Serial.println("Alert: Error counters exceeded limit!");
+//   }
+//   if (alerts_triggered & TWAI_ALERT_ERR_ACTIVE)
+//   {
+//     Serial.println("Alert: Error-active!");
+//   }
 
-  // Check if message is received
-  if (alerts_triggered & TWAI_ALERT_RX_DATA) {
-    twai_message_t message;
-    while (twai_receive(&message, 0) == ESP_OK) {
-      handle_rx_message(message);
-    }
-  }
-}
+//   // Check if message is received
+//   if (alerts_triggered & TWAI_ALERT_RX_DATA) {
+//     twai_message_t message;
+//     while (twai_receive(&message, 0) == ESP_OK) {
+//       handle_rx_message(message);
+//     }
+//   }
+// }
